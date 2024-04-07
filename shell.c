@@ -1,5 +1,4 @@
 #include "shell.h"
-
 /**
  * execute_command - executes a command
  * @command: the command to execute
@@ -31,29 +30,4 @@ void execute_command(char *command)
     {
         waitpid(child_pid, &stat_loc, 0);
     }
-}
-
-/**
- * main - the main function of the shell
- *
- * Return: 0 on success, 1 on failure
- */
-int main(void)
-{
-    char line[256];
-
-    while (1)
-    {
-        printf("%s", PROMPT);
-        if (fgets(line, sizeof(line), stdin) == NULL)
-        {
-            printf("\n");
-            break;
-        }
-
-        line[strcspn(line, "\n")] = '\0';
-        execute_command(line);
-    }
-
-    return 0;
 }

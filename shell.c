@@ -1,33 +1,48 @@
-#include "shell.h"
-/**
- * execute_command - executes a command
- * @command: the command to execute
- */
-void execute_command(char *command)
-{
-    char *args[2];
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+
+#define MAX_CMD_LEN 1024
+
+int main(void) {
+    char command[MAX_CMD_LEN];
+    int status;
     pid_t child_pid;
-    int stat_loc;
 
-    args[0] = command;
-    args[1] = NULL;
+    while (1) {
+        printf("#cisfun$ ");
+        fflush(stdout);
 
-    child_pid = fork();
-    if (child_pid == -1)
-    {
-        perror("Fork failed");
-        exit(1);
-    }
-    else if (child_pid == 0)
-    {
-        if (execve(args[0], args, NULL) == -1)
-        {
-            perror("Command not found");
-            exit(1);
+        if (fgets(command, MAX_CMD_LEN, stdin) == NULL) {
+            if (feof(stdin)) {
+                printf("\n");  // Add a newline on Ctrl+D (EOF)
+                break;         // Exit the loop
+            }
+            perror("Error reading input");
+            exit(EXIT_FAILURE);
+        }
+
+        // Remove trailing newline character from the input
+        command[strcspn(command, "\n")] = 0; 
+
+        child_pid = fork();
+        if (child_pid == -1) {
+            perror("fork");
+            exit(EXIT_FAILURE);
+        } else if (child_pid == 0) {
+            // Child process
+            char *argv[] = {command, NULL};
+            if (execve(command, argv, NULL) == -1) {
+                perror(command); // Use argv[0] (the command name) in the error message
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            // Parent process
+            wait(&status);
         }
     }
-    else
-    {
-        waitpid(child_pid, &stat_loc, 0);
-    }
+    return 0;
 }
